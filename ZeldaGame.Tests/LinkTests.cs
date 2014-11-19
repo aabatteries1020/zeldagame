@@ -14,6 +14,7 @@ namespace ZeldaGame.Tests
     {
         private const double OneStep = Link.Speed;
         private const double TwoSteps = OneStep * 2;
+        private const double DiagonalStep = OneStep * 1.4142135623730951;
 
         private Link link;
         private IControllable controllable;
@@ -52,6 +53,62 @@ namespace ZeldaGame.Tests
 
             Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.1));
             Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y));
+        }
+
+        [Test]
+        public void GivenTheLeftAndUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUpAndLeft()
+        {
+            controllable.Stub(e => e.MoveLeft).Return(true);
+            controllable.Stub(e => e.MoveUp).Return(true);
+
+            var expectedPosition = new Vector2(link.Position.x - DiagonalStep, link.Position.y - DiagonalStep);
+
+            link.AdvanceLogic();
+
+            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
+            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+        }
+
+        [Test]
+        public void GivenTheLeftAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDownAndLeft()
+        {
+            controllable.Stub(e => e.MoveLeft).Return(true);
+            controllable.Stub(e => e.MoveDown).Return(true);
+
+            var expectedPosition = new Vector2(link.Position.x - DiagonalStep, link.Position.y + DiagonalStep);
+
+            link.AdvanceLogic();
+
+            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
+            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+        }
+
+        [Test]
+        public void GivenTheRightAndUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUpAndRight()
+        {
+            controllable.Stub(e => e.MoveRight).Return(true);
+            controllable.Stub(e => e.MoveUp).Return(true);
+
+            var expectedPosition = new Vector2(link.Position.x + DiagonalStep, link.Position.y - DiagonalStep);
+
+            link.AdvanceLogic();
+
+            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
+            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+        }
+
+        [Test]
+        public void GivenTheRightAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDownAndRight()
+        {
+            controllable.Stub(e => e.MoveRight).Return(true);
+            controllable.Stub(e => e.MoveUp).Return(true);
+
+            var expectedPosition = new Vector2(link.Position.x + DiagonalStep, link.Position.y + DiagonalStep);
+
+            link.AdvanceLogic();
+
+            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
+            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
         }
 
         [Test]
