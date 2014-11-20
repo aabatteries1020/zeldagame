@@ -14,7 +14,7 @@ namespace ZeldaGame.Tests
     {
         private const float OneStep = 2;
         private const float TwoSteps = OneStep * 2;
-        private const float DiagonalStep = OneStep * 1.4142135623730951f;
+        private const float DiagonalStep = OneStep * 0.7071067811865475f;
 
         private Link link;
         private IControllable controllable;
@@ -22,7 +22,7 @@ namespace ZeldaGame.Tests
         [SetUp]
         public void SetUp()
         {
-            controllable = MockRepository.GenerateStub<IControllable>();
+            controllable = MockRepository.GenerateMock<IControllable>();
             link = new Link(controllable);
         }
 
@@ -101,7 +101,7 @@ namespace ZeldaGame.Tests
         public void GivenTheRightAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDownAndRight()
         {
             controllable.Stub(e => e.MoveRight).Return(true);
-            controllable.Stub(e => e.MoveUp).Return(true);
+            controllable.Stub(e => e.MoveDown).Return(true);
 
             var expectedPosition = new Vector2(link.Position.X + DiagonalStep, link.Position.Y + DiagonalStep);
 
