@@ -1,4 +1,4 @@
-﻿using Axiom.Math;
+﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +8,6 @@ namespace ZeldaGame.Tests
 {
     public class Link
     {
-        public const double Speed = 2;
-
         private IControllable controllable;
 
         public Link(IControllable controllable)

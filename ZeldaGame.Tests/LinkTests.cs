@@ -1,4 +1,4 @@
-﻿using Axiom.Math;
+﻿using Microsoft.Xna.Framework;
 using NUnit.Framework;
 using Rhino.Mocks;
 using System;
@@ -12,9 +12,9 @@ namespace ZeldaGame.Tests
     [TestFixture]
     public class LinkTests
     {
-        private const double OneStep = Link.Speed;
-        private const double TwoSteps = OneStep * 2;
-        private const double DiagonalStep = OneStep * 1.4142135623730951;
+        private const float OneStep = 2;
+        private const float TwoSteps = OneStep * 2;
+        private const float DiagonalStep = OneStep * 1.4142135623730951f;
 
         private Link link;
         private IControllable controllable;
@@ -47,12 +47,12 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveLeft).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x - OneStep, link.Position.y);
+            var expectedPosition = new Vector2(link.Position.X - OneStep, link.Position.Y);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.1));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y));
         }
 
         [Test]
@@ -61,12 +61,12 @@ namespace ZeldaGame.Tests
             controllable.Stub(e => e.MoveLeft).Return(true);
             controllable.Stub(e => e.MoveUp).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x - DiagonalStep, link.Position.y - DiagonalStep);
+            var expectedPosition = new Vector2(link.Position.X - DiagonalStep, link.Position.Y - DiagonalStep);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
         }
 
         [Test]
@@ -75,12 +75,12 @@ namespace ZeldaGame.Tests
             controllable.Stub(e => e.MoveLeft).Return(true);
             controllable.Stub(e => e.MoveDown).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x - DiagonalStep, link.Position.y + DiagonalStep);
+            var expectedPosition = new Vector2(link.Position.X - DiagonalStep, link.Position.Y + DiagonalStep);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
         }
 
         [Test]
@@ -89,12 +89,12 @@ namespace ZeldaGame.Tests
             controllable.Stub(e => e.MoveRight).Return(true);
             controllable.Stub(e => e.MoveUp).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x + DiagonalStep, link.Position.y - DiagonalStep);
+            var expectedPosition = new Vector2(link.Position.X + DiagonalStep, link.Position.Y - DiagonalStep);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
         }
 
         [Test]
@@ -103,12 +103,12 @@ namespace ZeldaGame.Tests
             controllable.Stub(e => e.MoveRight).Return(true);
             controllable.Stub(e => e.MoveUp).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x + DiagonalStep, link.Position.y + DiagonalStep);
+            var expectedPosition = new Vector2(link.Position.X + DiagonalStep, link.Position.Y + DiagonalStep);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.2));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.2));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveLeft).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x - TwoSteps, link.Position.y);
+            var expectedPosition = new Vector2(link.Position.X - TwoSteps, link.Position.Y);
 
             link.AdvanceLogic();
 
@@ -124,8 +124,8 @@ namespace ZeldaGame.Tests
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.1));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y));
         }
 
         [Test]
@@ -133,7 +133,7 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveRight).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x + TwoSteps, link.Position.y);
+            var expectedPosition = new Vector2(link.Position.X + TwoSteps, link.Position.Y);
 
             link.AdvanceLogic();
 
@@ -141,8 +141,8 @@ namespace ZeldaGame.Tests
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.1));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y));
         }
 
         [Test]
@@ -150,7 +150,7 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveUp).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x, link.Position.y - TwoSteps);
+            var expectedPosition = new Vector2(link.Position.X, link.Position.Y - TwoSteps);
 
             link.AdvanceLogic();
 
@@ -158,8 +158,8 @@ namespace ZeldaGame.Tests
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.1));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
         }
 
         [Test]
@@ -167,7 +167,7 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveDown).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x, link.Position.y + TwoSteps);
+            var expectedPosition = new Vector2(link.Position.X, link.Position.Y + TwoSteps);
 
             link.AdvanceLogic();
 
@@ -175,8 +175,8 @@ namespace ZeldaGame.Tests
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.1));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
         }
 
         [Test]
@@ -184,12 +184,12 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveRight).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x + OneStep, link.Position.y);
+            var expectedPosition = new Vector2(link.Position.X + OneStep, link.Position.Y);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x).Within(0.1));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y));
         }
 
         [Test]
@@ -197,12 +197,12 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveUp).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x, link.Position.y - OneStep);
+            var expectedPosition = new Vector2(link.Position.X, link.Position.Y - OneStep);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.1));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
         }
 
         [Test]
@@ -210,12 +210,12 @@ namespace ZeldaGame.Tests
         {
             controllable.Stub(e => e.MoveDown).Return(true);
 
-            var expectedPosition = new Vector2(link.Position.x, link.Position.y + OneStep);
+            var expectedPosition = new Vector2(link.Position.X, link.Position.Y + OneStep);
 
             link.AdvanceLogic();
 
-            Assert.That(link.Position.x, Is.EqualTo(expectedPosition.x));
-            Assert.That(link.Position.y, Is.EqualTo(expectedPosition.y).Within(0.1));
+            Assert.That(link.Position.X, Is.EqualTo(expectedPosition.X));
+            Assert.That(link.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
         }
 
         [Test]
