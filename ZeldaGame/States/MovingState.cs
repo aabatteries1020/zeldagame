@@ -12,41 +12,34 @@ namespace ZeldaGame
         private readonly IDirectionable _directionable;
         private readonly object _endingState;
         private readonly float _speed;
+        private readonly IDirectionAnimationSet _directionAnimationSet;
 
-        public MovingState(IDirectionable directionable, IControllable controllable, object endingState, float speed)
+        public MovingState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, IControllable controllable, object endingState, float speed)
         {
             _directionable = directionable;
+            _directionAnimationSet = directionAnimationSet;
             _controllable = controllable;
             _endingState = endingState;
             _speed = speed;
 
-            if(_controllable.MoveDown)
-            {
-                _directionable.Direction = Direction.Down;
-            }
-            else if (_controllable.MoveUp)
-            {
-                _directionable.Direction = Direction.Up;
-            }
-            else if (_controllable.MoveLeft)
-            {
-                _directionable.Direction = Direction.Left;
-            }
-            else if (_controllable.MoveRight)
-            {
-                _directionable.Direction = Direction.Right;
-            }
+            _directionable.Direction = _controllable.Direction;
+            _directionable.Animation = _directionAnimationSet[_directionable.Direction];
         }
 
         public void AdvanceLogic()
         {
             var speed = _speed;
 
+            var moveDown = _controllable.Direction.HasFlag(Direction.Down);
+            var moveUp = _controllable.Direction.HasFlag(Direction.Up);
+            var moveLeft = _controllable.Direction.HasFlag(Direction.Left);
+            var moveRight = _controllable.Direction.HasFlag(Direction.Right);
+
             if (
-                (_controllable.MoveDown || _controllable.MoveUp) &&
-                !(_controllable.MoveDown && _controllable.MoveUp) &&
-                (_controllable.MoveLeft || _controllable.MoveRight) &&
-                !(_controllable.MoveLeft && _controllable.MoveRight))
+                (moveDown || moveUp) &&
+                !(moveDown && moveUp) &&
+                (moveLeft || moveRight) &&
+                !(moveLeft && moveRight))
             {
                 speed *= 0.7f; 
             }
@@ -55,25 +48,25 @@ namespace ZeldaGame
             var position = _directionable.Position;
             var wasCalled = false;
 
-            if (_controllable.MoveDown && direction != Direction.Up)
+            if (moveDown && direction != Direction.Up)
             {
                 position.Y += speed;
                 wasCalled = true;
             }
 
-            if (_controllable.MoveUp && direction != Direction.Down)
+            if (moveUp && direction != Direction.Down)
             {
                 position.Y -= speed;
                 wasCalled = true;
             }
 
-            if (_controllable.MoveLeft && direction != Direction.Right)
+            if (moveLeft && direction != Direction.Right)
             {
                 position.X -= speed;
                 wasCalled = true;
             }
 
-            if (_controllable.MoveRight && direction != Direction.Left)
+            if (moveRight && direction != Direction.Left)
             {
                 position.X += speed;
                 wasCalled = true;

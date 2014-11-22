@@ -22,5 +22,6 @@ namespace ZeldaGame
         }
 
         object State { get; set; }
+        IAnimation Animation { get; set; }
     }
 }

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ZeldaGame
 {
-    public interface IControllable
+    public interface IDirectionAnimationSet
     {
-        Direction Direction { get; }
+        IAnimation this[Direction direction]
+        {
+            get;
+        }
     }
 }

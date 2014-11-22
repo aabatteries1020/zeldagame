@@ -19,11 +19,18 @@ namespace ZeldaGame.Tests
         private IControllable _controllable;
         private IDirectionable _directionable;
         private MovingState _movingState;
+        private IDirectionAnimationSet _directionAnimationSet;
+        private IAnimation _animation;
         private object _endingState;
 
         [SetUp]
         public void SetUp()
         {
+            _animation = MockRepository.GenerateMock<IAnimation>();
+            _directionAnimationSet = MockRepository.GenerateStub<IDirectionAnimationSet>();
+
+            _directionAnimationSet.Stub(e => e[Arg<Direction>.Is.Anything]).Return(_animation);
+
             _directionable = MockRepository.GenerateStub<IDirectionable>();
             _controllable = MockRepository.GenerateMock<IControllable>();
             _movingState = null;
@@ -35,23 +42,31 @@ namespace ZeldaGame.Tests
             if(_movingState != null)
                 return;
 
-            _movingState = new MovingState(_directionable, _controllable, _endingState, OneStep);
+            _movingState = new MovingState(_directionable, _directionAnimationSet, _controllable,  _endingState, OneStep);
         }
 
-        [Test]
-        public void GivenTheDownKeyIsPressedOnCreationSetTheDirectionToDown()
+        [TestCase(Direction.Down)]
+        [TestCase(Direction.Up)]
+        [TestCase(Direction.Left)]
+        [TestCase(Direction.Right)]
+        public void GivenADirectionIsSpecifiedWhenAMovingStateIsCreatedTheSetTheDirection(Direction direction)
         {
-            _controllable.Stub(e => e.MoveDown).Return(true);
+            _controllable.Stub(e => e.Direction).Return(direction);
 
             CreateMovingState();
 
-            Assert.AreEqual(Direction.Down, _directionable.Direction);
+            Assert.AreEqual(direction, _directionable.Direction);
+            _directionAnimationSet.AssertWasCalled(e => e[direction]);
+            Assert.That(_directionable.Animation, Is.EqualTo(_animation));
         }
 
-        [Test]
-        public void GivenTheDownKeyIsPressedOnCreationAndReleasedBeforeAdvancingLogicThenResetTheState()
+        [TestCase(Direction.Down)]
+        [TestCase(Direction.Up)]
+        [TestCase(Direction.Left)]
+        [TestCase(Direction.Right)]
+        public void GivenADirectionIsSpecifiedOnCreationAndReleasedBeforeAdvancingLogicThenEndTheState(Direction direction)
         {
-            _controllable.Stub(e => e.MoveDown).Return(true).Repeat.Once();
+            _controllable.Stub(e => e.Direction).Return(direction).Repeat.Once();
 
             CreateMovingState();
 
@@ -61,37 +76,7 @@ namespace ZeldaGame.Tests
         }
 
         [Test]
-        public void GivenTheUpKeyIsPressedOnCreationSetTheDirectionToUp()
-        {
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            CreateMovingState();
-
-            Assert.AreEqual(Direction.Up, _directionable.Direction);
-        }
-
-        [Test]
-        public void GivenTheLeftKeyIsPressedOnCreationSetTheDirectionToLeft()
-        {
-            _controllable.Stub(e => e.MoveLeft).Return(true);
-
-            CreateMovingState();
-
-            Assert.AreEqual(Direction.Left, _directionable.Direction);
-        }
-
-        [Test]
-        public void GivenTheRightKeyIsPressedOnCreationSetTheDirectionToRight()
-        {
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            CreateMovingState();
-
-            Assert.AreEqual(Direction.Right, _directionable.Direction);
-        }
-
-        [Test]
-        public void GivenNoKeysArePressedWhenAdvanceLogicIsCalledThenDontMove()
+        public void GivenNoDirectionsAreSpecifiedWhenAdvanceLogicIsCalledThenDontMove()
         {
             CreateMovingState();
             
@@ -102,30 +87,17 @@ namespace ZeldaGame.Tests
             Assert.That(_directionable.Position, Is.EqualTo(expectedPosition));
         }
 
-        [Test]
-        public void GivenOnlyTheLeftKeyIsPressedWhenAdvanceLogicIsCalledThenMoveLeft()
+        [TestCase(Direction.Left | Direction.Down, -DiagonalStep, DiagonalStep)]
+        [TestCase(Direction.Left | Direction.Up, -DiagonalStep, -DiagonalStep)]
+        [TestCase(Direction.Right | Direction.Down, DiagonalStep, DiagonalStep)]
+        [TestCase(Direction.Right | Direction.Up, DiagonalStep, -DiagonalStep)]
+        public void GivenADiagonalDirectionIsSpecifiedWhenAdvanceLogicIsCalledThenMoveInThatDirection(Direction direction, float expectedX, float expectedY)
         {
-            _controllable.Stub(e => e.MoveLeft).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X - OneStep, _directionable.Position.Y);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y));
-        }
-
-        [Test]
-        public void GivenTheLeftAndUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUpAndLeft()
-        {
-            _controllable.Stub(e => e.MoveLeft).Return(true);
+            _controllable.Stub(e => e.Direction).Return(direction);
 
             CreateMovingState();
             
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            var expectedPosition = new Vector2(_directionable.Position.X - DiagonalStep, _directionable.Position.Y - DiagonalStep);
+            var expectedPosition = new Vector2(_directionable.Position.X + expectedX, _directionable.Position.Y + expectedY);
 
             _movingState.AdvanceLogic();
 
@@ -133,221 +105,60 @@ namespace ZeldaGame.Tests
             Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
         }
 
-        [Test]
-        public void GivenTheLeftAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDownAndLeft()
+        [TestCase(Direction.Left, Direction.Right, -TwoSteps, 0, 0.1f, 0)]
+        [TestCase(Direction.Up, Direction.Down, 0, -TwoSteps, 0, 0.1f)]
+        [TestCase(Direction.Right, Direction.Left, TwoSteps, 0, 0.1f, 0)]
+        [TestCase(Direction.Down, Direction.Up, 0, TwoSteps, 0, 0.1f)]
+        public void GivenADirectionWasSpecifiedAndAdvanceLogicHasBeenCalledWhenTheOppositeDirectionIsSpecifiedAndAdvanceLogicIsCalledAgainThenContinueMovingInTheOriginalDirection(Direction originalDirection, Direction nextDirection, float expectedX, float expectedY, float withinX, float withinY)
         {
-            _controllable.Stub(e => e.MoveLeft).Return(true);
+            _controllable.Stub(e => e.Direction).Return(originalDirection);
 
             CreateMovingState();
-            
-            _controllable.Stub(e => e.MoveDown).Return(true);
-
-            var expectedPosition = new Vector2(_directionable.Position.X - DiagonalStep, _directionable.Position.Y + DiagonalStep);
+            var expectedPosition = new Vector2(_directionable.Position.X + expectedX, _directionable.Position.Y + expectedY);
 
             _movingState.AdvanceLogic();
 
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
+            _controllable.BackToRecord();
+            _controllable.Replay();
+
+            _controllable.Stub(e => e.Direction).Return(originalDirection | nextDirection);
+
+            _movingState.AdvanceLogic();
+
+            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(withinX));
+            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(withinY));
         }
 
-        [Test]
-        public void GivenTheRightAndUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUpAndRight()
+        [TestCase(Direction.Left, -OneStep, 0, 0.1f, 0)]
+        [TestCase(Direction.Up, 0, -OneStep, 0, 0.1f)]
+        [TestCase(Direction.Right, OneStep, 0, 0.1f, 0)]
+        [TestCase(Direction.Down, 0, OneStep, 0, 0.1f)]
+        public void GivenOnlyOneDirectionIsSpecifiedWhenAdvanceLogicIsCalledThenMoveInThatDirection(Direction direction, float expectedX, float expectedY, float withinX, float withinY)
         {
-            _controllable.Stub(e => e.MoveRight).Return(true);
+            _controllable.Stub(e => e.Direction).Return(direction);
 
             CreateMovingState();
-            
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            var expectedPosition = new Vector2(_directionable.Position.X + DiagonalStep, _directionable.Position.Y - DiagonalStep);
+            var expectedPosition = new Vector2(_directionable.Position.X + expectedX, _directionable.Position.Y + expectedY);
 
             _movingState.AdvanceLogic();
 
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
+            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(withinX));
+            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(withinY));
         }
 
-        [Test]
-        public void GivenTheRightAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDownAndRight()
+        [TestCase(Direction.Left, Direction.Up | Direction.Down, -OneStep, 0, 0.1f, 0)]
+        [TestCase(Direction.Right, Direction.Up | Direction.Down, OneStep, 0, 0.1f, 0)]
+        [TestCase(Direction.Up, Direction.Left | Direction.Right, 0, -OneStep, 0, 0.1f)]
+        [TestCase(Direction.Down, Direction.Left | Direction.Right, 0, OneStep, 0, 0.1f)]
+        public void GivenOnlyOneDirectionIsSpecifiedAndThenBothDirectionsOnTheOtherAxisAreSpecifiedWhenAdvanceLogicIsCalledThenOnlyMoveInTheFirstDirectionSpecified(Direction originalDirection, Direction nextDirection, float expectedX, float expectedY, float withinX, float withinY)
         {
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            CreateMovingState();
-            
-            _controllable.Stub(e => e.MoveDown).Return(true);
-
-            var expectedPosition = new Vector2(_directionable.Position.X + DiagonalStep, _directionable.Position.Y + DiagonalStep);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
-        }
-
-        [Test]
-        public void GivenTheLeftKeyWasPreviouslyPressedAndRightKeyIsPressedWhenAdvanceLogicIsCalledThenContinueMovingLeft()
-        {
-            _controllable.Stub(e => e.MoveLeft).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X - TwoSteps, _directionable.Position.Y);
-
-            _movingState.AdvanceLogic();
-
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y));
-        }
-
-        [Test]
-        public void GivenTheRightKeyWasPreviouslyPressedAndLeftKeyIsPressedWhenAdvanceLogicIsCalledThenContinueMovingRight()
-        {
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X + TwoSteps, _directionable.Position.Y);
-
-            _movingState.AdvanceLogic();
-
-            _controllable.Stub(e => e.MoveLeft).Return(true);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y));
-        }
-
-        [Test]
-        public void GivenTheUpKeyWasPreviouslyPressedAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenContinueMovingUp()
-        {
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X, _directionable.Position.Y - TwoSteps);
-
-            _movingState.AdvanceLogic();
-
-            _controllable.Stub(e => e.MoveDown).Return(true);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
-        }
-
-        [Test]
-        public void GivenTheDownKeyWasPreviouslyPressedAndUpKeyIsPressedWhenAdvanceLogicIsCalledThenContinueMovingDown()
-        {
-            _controllable.Stub(e => e.MoveDown).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X, _directionable.Position.Y + TwoSteps);
-
-            _movingState.AdvanceLogic();
-
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
-        }
-
-        [Test]
-        public void GivenOnlyTheRightKeyIsPressedWhenAdvanceLogicIsCalledThenMoveRight()
-        {
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X + OneStep, _directionable.Position.Y);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.1));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y));
-        }
-
-        [Test]
-        public void GivenOnlyTheUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUp()
-        {
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X, _directionable.Position.Y - OneStep);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
-        }
-
-        [Test]
-        public void GivenOnlyTheDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDown()
-        {
-            _controllable.Stub(e => e.MoveDown).Return(true);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X, _directionable.Position.Y + OneStep);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.1));
-        }
-
-        [Test]
-        public void GivenTheUpAndDownAndLeftKeyIsPressedWhenAdvanceLogicIsCalledThenMoveLeft()
-        {
-            _controllable.Stub(e => e.MoveLeft).Return(true);
+            _controllable.Stub(e => e.Direction).Return(originalDirection).Repeat.Once();
 
             CreateMovingState();
 
-            _controllable.Stub(e => e.MoveDown).Return(true);
-            _controllable.Stub(e => e.MoveUp).Return(true);
+            _controllable.Stub(e => e.Direction).Return(originalDirection | nextDirection);
 
-            GivenOnlyTheLeftKeyIsPressedWhenAdvanceLogicIsCalledThenMoveLeft();
-        }
-
-        [Test]
-        public void GivenTheUpAndDownAndRightKeyIsPressedWhenAdvanceLogicIsCalledThenMoveRight()
-        {
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            CreateMovingState();
-
-            _controllable.Stub(e => e.MoveDown).Return(true);
-            _controllable.Stub(e => e.MoveUp).Return(true);
-            
-            GivenOnlyTheRightKeyIsPressedWhenAdvanceLogicIsCalledThenMoveRight();
-        }
-
-        [Test]
-        public void GivenTheLeftAndRightAndUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUp()
-        {
-            _controllable.Stub(e => e.MoveUp).Return(true);
-
-            CreateMovingState();
-
-            _controllable.Stub(e => e.MoveLeft).Return(true);
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            GivenOnlyTheUpKeyIsPressedWhenAdvanceLogicIsCalledThenMoveUp();
-        }
-
-        [Test]
-        public void GivenTheLeftAndRightAndDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDown()
-        {
-            _controllable.Stub(e => e.MoveDown).Return(true);
-
-            CreateMovingState();
-
-            _controllable.Stub(e => e.MoveLeft).Return(true);
-            _controllable.Stub(e => e.MoveRight).Return(true);
-
-            GivenOnlyTheDownKeyIsPressedWhenAdvanceLogicIsCalledThenMoveDown();
+            GivenOnlyOneDirectionIsSpecifiedWhenAdvanceLogicIsCalledThenMoveInThatDirection(originalDirection, expectedX, expectedY, withinX, withinY);
         }
     }
 }
