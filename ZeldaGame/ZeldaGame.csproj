@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="IAnimation.cs" />
     <Compile Include="IDirectionAnimationSet.cs" />
+    <Compile Include="IState.cs" />
     <Compile Include="States\ArrowState.cs" />
     <Compile Include="States\BowFiringState.cs" />
     <Compile Include="Direction.cs" />

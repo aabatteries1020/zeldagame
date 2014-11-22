@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ZeldaGame
 {
-    public class ArrowState
+    public class ArrowState : IState
     {
         private MovingState _state;
 

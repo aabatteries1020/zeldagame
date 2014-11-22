@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ZeldaGame
 {
-    public class MovingState
+    public class MovingState : IState
     {
         private readonly IControllable _controllable;
         private readonly IDirectionable _directionable;

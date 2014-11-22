@@ -73,8 +73,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrowStateTest.cs" />
+    <Compile Include="ArrowStateTests.cs" />
     <Compile Include="BowFiringStateTests.cs" />
+    <Compile Include="DirectionableStateTestBase.cs" />
     <Compile Include="MovingStateTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SwordStateTests.cs" />

@@ -1,35 +1,18 @@
-﻿using Microsoft.Xna.Framework;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Rhino.Mocks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ZeldaGame;
+using StoryQ;
 
 namespace ZeldaGame.Tests
 {
     [TestFixture]
-    public class BowFiringStateTests
+    public class BowFiringStateTests : DirectionableStateTestBase
     {
         private IArrowFactory _arrowFactory;
-        private BowFiringState _bowFiringState;
-        private IDirectionable _directionable;
-        private IDirectionAnimationSet _directionAnimationSet;
-        private IAnimation _animation;
         private object _endingState;
 
         [SetUp]
         public void SetUp()
         {
-            _animation = MockRepository.GenerateMock<IAnimation>();
-            _directionAnimationSet = MockRepository.GenerateStub<IDirectionAnimationSet>();
-
-            _directionAnimationSet.Stub(e => e[Arg<Direction>.Is.Anything]).Return(_animation);
-
-            _directionable = MockRepository.GenerateStub<IDirectionable>();
-
             _endingState = new object();
             _arrowFactory = MockRepository.GenerateStub<IArrowFactory>();
         }
@@ -38,33 +21,48 @@ namespace ZeldaGame.Tests
         [TestCase(Direction.Up)]
         [TestCase(Direction.Left)]
         [TestCase(Direction.Right)]
-        public void GivenWeAreInTheBowFiringStateWhenCreatedThenCreateAnArrowInTheSpecifiedDirection(Direction direction)
+        public void BowFiringTest(Direction direction)
         {
-            _directionable.Position = new Vector2();
-            _directionable.Direction = direction;
-
-            var bowFiringState = new BowFiringState(_arrowFactory, _directionable, _directionAnimationSet, _endingState);
-
-            Assert.That(_directionable.Animation, Is.EqualTo(_animation));
-            _arrowFactory.AssertWasCalled(e => e.CreateArrow(_directionable.Position, direction));
+            new Story("Firing an arrow").Tag("arrow")
+                .InOrderTo("Make use of the bow")
+                .AsA("Gamer")
+                .IWant("To be able to fire an arrow")
+                .WithScenario("I am using the bow")
+                .Given(AnObjectIsFacingInADirection, direction)
+                .When(TheObjectIsInTheBowFiringState)
+                .Then(TheAnimationHasFinished)
+                    .And(TheArrowHasBeenFiredInDirection, direction)
+                .ExecuteWithReport();
         }
 
         [TestCase(Direction.Down)]
         [TestCase(Direction.Up)]
         [TestCase(Direction.Left)]
         [TestCase(Direction.Right)]
-        public void GivenWeAreInTheBowFiringStateWhenCreatedAndTheBowFiringAnimationHasFinishedWhenAdvanceLogicIsCalledThenSetTheEndingState(Direction direction)
+        public void AnimationEndingTest(Direction direction)
         {
-            _directionable.Position = new Vector2();
-            _directionable.Direction = direction;
+            new Story("Firing an arrow").Tag("arrow")
+                .InOrderTo("Make use of the bow")
+                .AsA("Gamer")
+                .IWant("The bow firing to end")
+                .WithScenario("The bow has been fired")
+                .Given(AnObjectIsFacingInADirection, direction)
+                    .And(TheObjectIsInTheBowFiringState)
+                    .And(TheAnimationHasFinished)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectShouldEnterAnotherState, _endingState)
+                    .And(TheArrowHasBeenFiredInDirection, direction)
+                .ExecuteWithReport();
+        }
 
-            var bowFiringState = new BowFiringState(_arrowFactory, _directionable, _directionAnimationSet, _endingState);
+        private void TheArrowHasBeenFiredInDirection(Direction direction)
+        {
+            _arrowFactory.AssertWasCalled(e => e.CreateArrow(_directionable.Position, direction));
+        }
 
-            _animation.Stub(e => e.IsComplete).Return(true);
-
-            bowFiringState.AdvanceLogic();
-
-            Assert.That(_directionable.State, Is.EqualTo(_endingState));
+        private void TheObjectIsInTheBowFiringState()
+        {
+            _state = new BowFiringState(_arrowFactory, _directionable, _directionAnimationSet, _endingState);
         }
     }
 }

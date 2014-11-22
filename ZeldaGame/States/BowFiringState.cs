@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ZeldaGame
 {
-    public class BowFiringState
+    public class BowFiringState : IState
     {
         private IArrowFactory _arrowFactory;
         private IDirectionable _directionable;

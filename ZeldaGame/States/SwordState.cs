@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ZeldaGame.Tests
 {
-    public class SwordState
+    public class SwordState : IState
     {
         private IDirectionable _directionable;
         private IDirectionAnimationSet _directionAnimationSet;

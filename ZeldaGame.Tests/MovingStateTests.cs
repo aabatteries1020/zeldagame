@@ -1,164 +1,158 @@
-﻿using Microsoft.Xna.Framework;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Rhino.Mocks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using StoryQ;
 
 namespace ZeldaGame.Tests
 {
     [TestFixture]
-    public class MovingStateTests
+    public class MovingStateTests : DirectionableStateTestBase
     {
         private const float OneStep = 2;
         private const float TwoSteps = OneStep * 2;
         private const float DiagonalStep = OneStep * 0.7071067811865475f;
 
         private IControllable _controllable;
-        private IDirectionable _directionable;
-        private MovingState _movingState;
-        private IDirectionAnimationSet _directionAnimationSet;
-        private IAnimation _animation;
         private object _endingState;
 
         [SetUp]
         public void SetUp()
         {
-            _animation = MockRepository.GenerateMock<IAnimation>();
-            _directionAnimationSet = MockRepository.GenerateStub<IDirectionAnimationSet>();
-
-            _directionAnimationSet.Stub(e => e[Arg<Direction>.Is.Anything]).Return(_animation);
-
-            _directionable = MockRepository.GenerateStub<IDirectionable>();
             _controllable = MockRepository.GenerateMock<IControllable>();
-            _movingState = null;
             _endingState = new object();
         }
 
-        private void CreateMovingState()
-        {
-            if(_movingState != null)
-                return;
-
-            _movingState = new MovingState(_directionable, _directionAnimationSet, _controllable,  _endingState, OneStep);
-        }
-
         [TestCase(Direction.Down)]
         [TestCase(Direction.Up)]
         [TestCase(Direction.Left)]
         [TestCase(Direction.Right)]
-        public void GivenADirectionIsSpecifiedWhenAMovingStateIsCreatedTheSetTheDirection(Direction direction)
+        public void CreationTest(Direction direction)
         {
-            _controllable.Stub(e => e.Direction).Return(direction);
-
-            CreateMovingState();
-
-            Assert.AreEqual(direction, _directionable.Direction);
-            _directionAnimationSet.AssertWasCalled(e => e[direction]);
-            Assert.That(_directionable.Animation, Is.EqualTo(_animation));
-        }
-
-        [TestCase(Direction.Down)]
-        [TestCase(Direction.Up)]
-        [TestCase(Direction.Left)]
-        [TestCase(Direction.Right)]
-        public void GivenADirectionIsSpecifiedOnCreationAndReleasedBeforeAdvancingLogicThenEndTheState(Direction direction)
-        {
-            _controllable.Stub(e => e.Direction).Return(direction).Repeat.Once();
-
-            CreateMovingState();
-
-            _movingState.AdvanceLogic();
-
-            Assert.AreEqual(_endingState, _directionable.State);
+            new Story("Entering an moving state").Tag("moving")
+                .InOrderTo("See the object facing in the right direction in the moving state")
+                .AsA("Gamer")
+                .IWant("Its animation to be set to the direction in which I intend to move")
+                .WithScenario("Object is entering the moving state")
+                .Given(IIntendToMoveInADirection, direction)
+                .When(TheObjectIsInTheMovingState)
+                .Then(TheObjectIsFacingInTheDirectionIIntended, direction)
+                    .And(TheObjectsAnimationIsCorrectForItsDirection, direction)
+                .ExecuteWithReport();
         }
 
         [Test]
-        public void GivenNoDirectionsAreSpecifiedWhenAdvanceLogicIsCalledThenDontMove()
+        public void EndingStateTest()
         {
-            CreateMovingState();
-            
-            var expectedPosition = _directionable.Position;
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position, Is.EqualTo(expectedPosition));
+            new Story("Enter the ending state").Tag("moving")
+                .InOrderTo("Move around")
+                .AsA("Gamer")
+                .IWant("Be able to stop moving")
+                .WithScenario("No keys pressed")
+                .Given(TheObjectIsInTheMovingState)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectShouldEnterAnotherState, _endingState)
+                .ExecuteWithReport();
         }
 
         [TestCase(Direction.Left | Direction.Down, -DiagonalStep, DiagonalStep)]
         [TestCase(Direction.Left | Direction.Up, -DiagonalStep, -DiagonalStep)]
         [TestCase(Direction.Right | Direction.Down, DiagonalStep, DiagonalStep)]
         [TestCase(Direction.Right | Direction.Up, DiagonalStep, -DiagonalStep)]
-        public void GivenADiagonalDirectionIsSpecifiedWhenAdvanceLogicIsCalledThenMoveInThatDirection(Direction direction, float expectedX, float expectedY)
+        public void DiagonalMovementTest(Direction direction, float expectedX, float expectedY)
         {
-            _controllable.Stub(e => e.Direction).Return(direction);
-
-            CreateMovingState();
-            
-            var expectedPosition = new Vector2(_directionable.Position.X + expectedX, _directionable.Position.Y + expectedY);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(0.2));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(0.2));
+            new Story("Move slower diagonally").Tag("moving")
+                .InOrderTo("Move in all directions at the same speed")
+                .AsA("Gamer")
+                .IWant("To move slower when moving diagonally")
+                .WithScenario("Multiple direction keys pressed")
+                .Given(IIntendToMoveInADirection, direction)
+                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectIsInTheMovingState)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectHasMovedToTheExpectedPositionWithin, 0.2f, 0.2f)
+                .ExecuteWithReport();
         }
 
         [TestCase(Direction.Left, Direction.Right, -TwoSteps, 0, 0.1f, 0)]
         [TestCase(Direction.Up, Direction.Down, 0, -TwoSteps, 0, 0.1f)]
         [TestCase(Direction.Right, Direction.Left, TwoSteps, 0, 0.1f, 0)]
         [TestCase(Direction.Down, Direction.Up, 0, TwoSteps, 0, 0.1f)]
-        public void GivenADirectionWasSpecifiedAndAdvanceLogicHasBeenCalledWhenTheOppositeDirectionIsSpecifiedAndAdvanceLogicIsCalledAgainThenContinueMovingInTheOriginalDirection(Direction originalDirection, Direction nextDirection, float expectedX, float expectedY, float withinX, float withinY)
+        public void PrioritisedMovementTest(Direction originalDirection, Direction nextDirection, float expectedX, float expectedY, float withinX, float withinY)
         {
-            _controllable.Stub(e => e.Direction).Return(originalDirection);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X + expectedX, _directionable.Position.Y + expectedY);
-
-            _movingState.AdvanceLogic();
-
-            _controllable.BackToRecord();
-            _controllable.Replay();
-
-            _controllable.Stub(e => e.Direction).Return(originalDirection | nextDirection);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(withinX));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(withinY));
+            new Story("Prioritise existing direction over the opposite direction").Tag("moving")
+                .InOrderTo("Continue moving in the same direction when opposite key is pressed")
+                .AsA("Gamer")
+                .IWant("To continue moving in the same direction")
+                .WithScenario("Moving in a direction")
+                .Given(IIntendToMoveInADirection, originalDirection)
+                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectIsInTheMovingState)
+                    .And(AdvanceLogicHasBeenCalled)
+                    .And(TheIntendedDirectionChanges, originalDirection | nextDirection)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectHasMovedToTheExpectedPositionWithin, withinX, withinY)
+                .ExecuteWithReport();
         }
 
         [TestCase(Direction.Left, -OneStep, 0, 0.1f, 0)]
         [TestCase(Direction.Up, 0, -OneStep, 0, 0.1f)]
         [TestCase(Direction.Right, OneStep, 0, 0.1f, 0)]
         [TestCase(Direction.Down, 0, OneStep, 0, 0.1f)]
-        public void GivenOnlyOneDirectionIsSpecifiedWhenAdvanceLogicIsCalledThenMoveInThatDirection(Direction direction, float expectedX, float expectedY, float withinX, float withinY)
+        public void MovingTest(Direction direction, float expectedX, float expectedY, float withinX, float withinY)
         {
-            _controllable.Stub(e => e.Direction).Return(direction);
-
-            CreateMovingState();
-            var expectedPosition = new Vector2(_directionable.Position.X + expectedX, _directionable.Position.Y + expectedY);
-
-            _movingState.AdvanceLogic();
-
-            Assert.That(_directionable.Position.X, Is.EqualTo(expectedPosition.X).Within(withinX));
-            Assert.That(_directionable.Position.Y, Is.EqualTo(expectedPosition.Y).Within(withinY));
+            new Story("Moving in a direction").Tag("moving")
+                .InOrderTo("Get to different places")
+                .AsA("Gamer")
+                .IWant("To move the object on screen")
+                .WithScenario("Direction key pressed")
+                .Given(IIntendToMoveInADirection, direction)
+                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectIsInTheMovingState)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectHasMovedToTheExpectedPositionWithin, withinX, withinY)
+                .ExecuteWithReport();
         }
 
         [TestCase(Direction.Left, Direction.Up | Direction.Down, -OneStep, 0, 0.1f, 0)]
         [TestCase(Direction.Right, Direction.Up | Direction.Down, OneStep, 0, 0.1f, 0)]
         [TestCase(Direction.Up, Direction.Left | Direction.Right, 0, -OneStep, 0, 0.1f)]
         [TestCase(Direction.Down, Direction.Left | Direction.Right, 0, OneStep, 0, 0.1f)]
-        public void GivenOnlyOneDirectionIsSpecifiedAndThenBothDirectionsOnTheOtherAxisAreSpecifiedWhenAdvanceLogicIsCalledThenOnlyMoveInTheFirstDirectionSpecified(Direction originalDirection, Direction nextDirection, float expectedX, float expectedY, float withinX, float withinY)
+        public void StrafingWithBothKeysTest(Direction originalDirection, Direction nextDirection, float expectedX, float expectedY, float withinX, float withinY)
         {
-            _controllable.Stub(e => e.Direction).Return(originalDirection).Repeat.Once();
+            new Story("Prevent strafing when both keys are pressed").Tag("moving")
+                .InOrderTo("Not have bias when strafing when both keys are pressed")
+                .AsA("Gamer")
+                .IWant("To not strafe")
+                .WithScenario("Moving in a direction")
+                .Given(IIntendToMoveInADirection, originalDirection)
+                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectIsInTheMovingState)
+                    .And(TheIntendedDirectionChanges, originalDirection | nextDirection)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectHasMovedToTheExpectedPositionWithin, withinX, withinY)
+                .ExecuteWithReport();
+        }
 
-            CreateMovingState();
+        private void TheIntendedDirectionChanges(Direction direction)
+        {
+            _controllable.BackToRecord();
+            _controllable.Replay();
 
-            _controllable.Stub(e => e.Direction).Return(originalDirection | nextDirection);
+            IIntendToMoveInADirection(direction);
+        }
 
-            GivenOnlyOneDirectionIsSpecifiedWhenAdvanceLogicIsCalledThenMoveInThatDirection(originalDirection, expectedX, expectedY, withinX, withinY);
+        private void TheObjectIsFacingInTheDirectionIIntended(Direction direction)
+        {
+            Assert.That(_directionable.Direction, Is.EqualTo(direction));
+        }
+
+        private void TheObjectIsInTheMovingState()
+        {
+            _state = new MovingState(_directionable, _directionAnimationSet, _controllable, _endingState, OneStep);
+        }
+
+        private void IIntendToMoveInADirection(Direction direction)
+        {
+            _controllable.Stub(e => e.Direction).Return(direction);
         }
     }
 }
