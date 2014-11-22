@@ -7,6 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeldaGame", "ZeldaGame\Zeld
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeldaGame.Tests", "ZeldaGame.Tests\ZeldaGame.Tests.csproj", "{2BA6D49C-329E-442E-A2C0-B2CE7EB43384}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeldaGame.TestRunner", "ZeldaGame.TestRunner\ZeldaGame.TestRunner.csproj", "{3B115572-5B1D-43B8-A51E-A671DF40793D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6929B44C-13EC-431C-845F-C14027AF664A}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +38,12 @@ Global
 		{2BA6D49C-329E-442E-A2C0-B2CE7EB43384}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2BA6D49C-329E-442E-A2C0-B2CE7EB43384}.Release|x86.ActiveCfg = Release|x86
 		{2BA6D49C-329E-442E-A2C0-B2CE7EB43384}.Release|x86.Build.0 = Release|x86
+		{3B115572-5B1D-43B8-A51E-A671DF40793D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B115572-5B1D-43B8-A51E-A671DF40793D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B115572-5B1D-43B8-A51E-A671DF40793D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3B115572-5B1D-43B8-A51E-A671DF40793D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B115572-5B1D-43B8-A51E-A671DF40793D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B115572-5B1D-43B8-A51E-A671DF40793D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

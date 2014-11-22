@@ -10,10 +10,10 @@ namespace ZeldaGame
     {
         bool MoveLeft { get; }
 
-        bool MoveRight { get; set; }
+        bool MoveRight { get; }
 
-        bool MoveDown { get; set; }
+        bool MoveDown { get; }
 
-        bool MoveUp { get; set; }
+        bool MoveUp { get; }
     }
 }

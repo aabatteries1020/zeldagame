@@ -58,8 +58,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="States\BowFiringState.cs" />
+    <Compile Include="Direction.cs" />
+    <Compile Include="IArrowFactory.cs" />
     <Compile Include="IControllable.cs" />
-    <Compile Include="Link.cs" />
+    <Compile Include="IDirectionable.cs" />
+    <Compile Include="IInstanceManager.cs" />
+    <Compile Include="States\MovingState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
