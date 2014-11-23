@@ -9,5 +9,7 @@ namespace ZeldaGame
     public interface IControllable
     {
         Direction Direction { get; }
+
+        EquipmentSlots Slot { get; }
     }
 }

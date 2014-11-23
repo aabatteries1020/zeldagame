@@ -12,13 +12,11 @@ namespace ZeldaGame.Tests
         private const float DiagonalStep = OneStep * 0.7071067811865475f;
 
         private IControllable _controllable;
-        private object _endingState;
 
         [SetUp]
         public void SetUp()
         {
             _controllable = MockRepository.GenerateMock<IControllable>();
-            _endingState = new object();
         }
 
         [TestCase(Direction.Down)]
@@ -27,7 +25,7 @@ namespace ZeldaGame.Tests
         [TestCase(Direction.Right)]
         public void CreationTest(Direction direction)
         {
-            new Story("Entering an moving state").Tag("moving")
+            new Story("Entering a moving state").Tag("moving")
                 .InOrderTo("See the object facing in the right direction in the moving state")
                 .AsA("Gamer")
                 .IWant("Its animation to be set to the direction in which I intend to move")
@@ -65,7 +63,7 @@ namespace ZeldaGame.Tests
                 .IWant("To move slower when moving diagonally")
                 .WithScenario("Multiple direction keys pressed")
                 .Given(IIntendToMoveInADirection, direction)
-                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
                     .And(TheObjectIsInTheMovingState)
                 .When(AdvanceLogicHasBeenCalled)
                 .Then(TheObjectHasMovedToTheExpectedPositionWithin, 0.2f, 0.2f)
@@ -84,7 +82,7 @@ namespace ZeldaGame.Tests
                 .IWant("To continue moving in the same direction")
                 .WithScenario("Moving in a direction")
                 .Given(IIntendToMoveInADirection, originalDirection)
-                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
                     .And(TheObjectIsInTheMovingState)
                     .And(AdvanceLogicHasBeenCalled)
                     .And(TheIntendedDirectionChanges, originalDirection | nextDirection)
@@ -105,7 +103,7 @@ namespace ZeldaGame.Tests
                 .IWant("To move the object on screen")
                 .WithScenario("Direction key pressed")
                 .Given(IIntendToMoveInADirection, direction)
-                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
                     .And(TheObjectIsInTheMovingState)
                 .When(AdvanceLogicHasBeenCalled)
                 .Then(TheObjectHasMovedToTheExpectedPositionWithin, withinX, withinY)
@@ -124,7 +122,7 @@ namespace ZeldaGame.Tests
                 .IWant("To not strafe")
                 .WithScenario("Moving in a direction")
                 .Given(IIntendToMoveInADirection, originalDirection)
-                    .And(ItHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
                     .And(TheObjectIsInTheMovingState)
                     .And(TheIntendedDirectionChanges, originalDirection | nextDirection)
                 .When(AdvanceLogicHasBeenCalled)
@@ -147,7 +145,7 @@ namespace ZeldaGame.Tests
 
         private void TheObjectIsInTheMovingState()
         {
-            _state = new MovingState(_directionable, _directionAnimationSet, _controllable, _endingState, OneStep);
+            _state = new MovingState(_directionable, _directionAnimationSet, _controllable, _endingStateCallback, OneStep);
         }
 
         private void IIntendToMoveInADirection(Direction direction)

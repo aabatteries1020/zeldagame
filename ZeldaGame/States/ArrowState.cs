@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ZeldaGame
+﻿namespace ZeldaGame
 {
     public class ArrowState : IState
     {
@@ -21,16 +16,27 @@ namespace ZeldaGame
                 get;
                 private set;
             }
+
+            public EquipmentSlots Slot
+            {
+                get;
+                set;
+            }
         }
 
         public ArrowState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet)
         {
-            _state = new MovingState(directionable, directionAnimationSet, new Controller(directionable.Direction), directionAnimationSet, 1.0f);
+            _state = new MovingState(directionable, directionAnimationSet, new Controller(directionable.Direction), null, 1.0f);
         }
 
         public void AdvanceLogic()
         {
             _state.AdvanceLogic();
+        }
+
+        public bool CanUseItems
+        {
+            get { return false; }
         }
     }
 }

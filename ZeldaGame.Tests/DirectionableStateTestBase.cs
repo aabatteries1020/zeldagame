@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using NUnit.Framework;
 using Rhino.Mocks;
+using System;
 
 namespace ZeldaGame.Tests
 {
@@ -11,6 +12,8 @@ namespace ZeldaGame.Tests
         protected IAnimation _animation;
         protected IState _state;
         protected Vector2 _expectedPosition;
+        protected IState _endingState;
+        protected Func<IState> _endingStateCallback;
 
         [SetUp]
         public void DirectionableSetup()
@@ -20,10 +23,13 @@ namespace ZeldaGame.Tests
             _directionAnimationSet = MockRepository.GenerateStub<IDirectionAnimationSet>();
             _directionAnimationSet.Stub(e => e[Arg<Direction>.Is.Anything]).Return(_animation);
 
+            _endingState = MockRepository.GenerateStub<IState>();
+            _endingStateCallback = () => _endingState;
+
             _state = null;
         }
 
-        protected void AnObjectIsFacingInADirection(Direction direction)
+        protected void TheObjectIsFacingInADirection(Direction direction)
         {
             _directionable.Direction = direction;
         }
@@ -55,7 +61,7 @@ namespace ZeldaGame.Tests
             Assert.That(_directionable.Position.Y, Is.EqualTo(_expectedPosition.Y).Within(withinY));
         }
 
-        protected void ItHasARelativeExpectedXAndYPositionOf(float x, float y)
+        protected void TheObjectHasARelativeExpectedXAndYPositionOf(float x, float y)
         {
             _expectedPosition = new Vector2(_directionable.Position.X + x, _directionable.Position.Y + y);
         }

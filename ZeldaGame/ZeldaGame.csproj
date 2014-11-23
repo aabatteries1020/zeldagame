@@ -58,9 +58,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Equipment.cs" />
+    <Compile Include="EquipmentSlots.cs" />
     <Compile Include="IAnimation.cs" />
     <Compile Include="IDirectionAnimationSet.cs" />
+    <Compile Include="IGroupAnimationSet.cs" />
+    <Compile Include="IItem.cs" />
+    <Compile Include="IResourceManager.cs" />
     <Compile Include="IState.cs" />
+    <Compile Include="Link.cs" />
+    <Compile Include="States\StandingState.cs" />
     <Compile Include="States\ArrowState.cs" />
     <Compile Include="States\BowFiringState.cs" />
     <Compile Include="Direction.cs" />

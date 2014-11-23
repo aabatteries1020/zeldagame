@@ -8,12 +8,10 @@ namespace ZeldaGame.Tests
     public class BowFiringStateTests : DirectionableStateTestBase
     {
         private IArrowFactory _arrowFactory;
-        private object _endingState;
-
+        
         [SetUp]
         public void SetUp()
         {
-            _endingState = new object();
             _arrowFactory = MockRepository.GenerateStub<IArrowFactory>();
         }
 
@@ -28,7 +26,7 @@ namespace ZeldaGame.Tests
                 .AsA("Gamer")
                 .IWant("To be able to fire an arrow")
                 .WithScenario("I am using the bow")
-                .Given(AnObjectIsFacingInADirection, direction)
+                .Given(TheObjectIsFacingInADirection, direction)
                 .When(TheObjectIsInTheBowFiringState)
                 .Then(TheAnimationHasFinished)
                     .And(TheArrowHasBeenFiredInDirection, direction)
@@ -46,7 +44,7 @@ namespace ZeldaGame.Tests
                 .AsA("Gamer")
                 .IWant("The bow firing to end")
                 .WithScenario("The bow has been fired")
-                .Given(AnObjectIsFacingInADirection, direction)
+                .Given(TheObjectIsFacingInADirection, direction)
                     .And(TheObjectIsInTheBowFiringState)
                     .And(TheAnimationHasFinished)
                 .When(AdvanceLogicHasBeenCalled)
@@ -62,7 +60,7 @@ namespace ZeldaGame.Tests
 
         private void TheObjectIsInTheBowFiringState()
         {
-            _state = new BowFiringState(_arrowFactory, _directionable, _directionAnimationSet, _endingState);
+            _state = new BowFiringState(_arrowFactory, _directionable, _directionAnimationSet, _endingStateCallback);
         }
     }
 }

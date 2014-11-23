@@ -9,13 +9,13 @@ namespace ZeldaGame.Tests
     {
         private IDirectionable _directionable;
         private IDirectionAnimationSet _directionAnimationSet;
-        private object _endingState;
+        private Func<IState> _endingStateCallback;
 
-        public SwordState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, object endingState)
+        public SwordState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, Func<IState> endingStateCallback)
         {
             _directionable = directionable;
             _directionAnimationSet = directionAnimationSet;
-            _endingState = endingState;
+            _endingStateCallback = endingStateCallback;
 
             _directionable.Animation = _directionAnimationSet[_directionable.Direction];
         }
@@ -24,8 +24,13 @@ namespace ZeldaGame.Tests
         {
             if(_directionable.Animation.IsComplete)
             {
-                _directionable.State = _endingState;
+                _directionable.State = _endingStateCallback();
             }
+        }
+
+        public bool CanUseItems
+        {
+            get { return false; }
         }
     }
 }

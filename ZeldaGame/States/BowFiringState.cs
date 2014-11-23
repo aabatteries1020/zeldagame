@@ -10,14 +10,14 @@ namespace ZeldaGame
         private IArrowFactory _arrowFactory;
         private IDirectionable _directionable;
         private IDirectionAnimationSet _directionAnimationSet;
-        private object _endingState;
+        private Func<IState> _endingStateCallback;
 
-        public BowFiringState(IArrowFactory arrowFactory, IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, object endingState)
+        public BowFiringState(IArrowFactory arrowFactory, IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, Func<IState> endingStateCallback)
         {
             _arrowFactory = arrowFactory;
             _directionable = directionable;
             _directionAnimationSet = directionAnimationSet;
-            _endingState = endingState;
+            _endingStateCallback = endingStateCallback;
 
             _directionable.Animation = _directionAnimationSet[_directionable.Direction];
             _arrowFactory.CreateArrow(_directionable.Position, _directionable.Direction);
@@ -27,8 +27,13 @@ namespace ZeldaGame
         {
             if(_directionable.Animation.IsComplete)
             {
-                _directionable.State = _endingState;
+                _directionable.State = _endingStateCallback();
             }
+        }
+
+        public bool CanUseItems
+        {
+            get { return false; }
         }
     }
 }

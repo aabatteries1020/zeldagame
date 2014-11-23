@@ -10,16 +10,16 @@ namespace ZeldaGame
     {
         private readonly IControllable _controllable;
         private readonly IDirectionable _directionable;
-        private readonly object _endingState;
+        private readonly Func<IState> _endingStateCallback;
         private readonly float _speed;
         private readonly IDirectionAnimationSet _directionAnimationSet;
 
-        public MovingState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, IControllable controllable, object endingState, float speed)
+        public MovingState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, IControllable controllable, Func<IState> endingStateCallback, float speed)
         {
             _directionable = directionable;
             _directionAnimationSet = directionAnimationSet;
             _controllable = controllable;
-            _endingState = endingState;
+            _endingStateCallback = endingStateCallback;
             _speed = speed;
 
             _directionable.Direction = _controllable.Direction;
@@ -74,10 +74,15 @@ namespace ZeldaGame
 
             if(!wasCalled)
             {
-                _directionable.State = _endingState;
+                _directionable.State = _endingStateCallback();
             }
 
             _directionable.Position = position;
+        }
+
+        public bool CanUseItems
+        {
+            get { return true; }
         }
     }
 }

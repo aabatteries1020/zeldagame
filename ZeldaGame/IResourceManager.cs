@@ -5,10 +5,8 @@ using System.Text;
 
 namespace ZeldaGame
 {
-    public interface IState
+    public interface IResourceManager
     {
-        void AdvanceLogic();
-
-        bool CanUseItems { get; }
+        IGroupAnimationSet LoadGroupSet(string groupSetName);
     }
 }
