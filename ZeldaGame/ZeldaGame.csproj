@@ -58,9 +58,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Managers\CollisionCollection.cs" />
+    <Compile Include="Managers\CollisionManager.cs" />
     <Compile Include="Equipment.cs" />
     <Compile Include="EquipmentSlots.cs" />
     <Compile Include="IAnimation.cs" />
+    <Compile Include="ICollidable.cs" />
     <Compile Include="IDirectionAnimationSet.cs" />
     <Compile Include="IGroupAnimationSet.cs" />
     <Compile Include="IItem.cs" />

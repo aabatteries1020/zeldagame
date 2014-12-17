@@ -75,6 +75,8 @@
   <ItemGroup>
     <Compile Include="ArrowStateTests.cs" />
     <Compile Include="BowFiringStateTests.cs" />
+    <Compile Include="CollisionCollectionTests.cs" />
+    <Compile Include="CollisionManagerTests.cs" />
     <Compile Include="LinkTests.cs" />
     <Compile Include="DirectionableStateTestBase.cs" />
     <Compile Include="MovingStateTests.cs" />
