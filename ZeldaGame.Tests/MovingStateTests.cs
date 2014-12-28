@@ -1,6 +1,9 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.Xna.Framework;
+using NUnit.Framework;
 using Rhino.Mocks;
 using StoryQ;
+using System;
+using System.Collections.Generic;
 
 namespace ZeldaGame.Tests
 {
@@ -12,11 +15,16 @@ namespace ZeldaGame.Tests
         private const float DiagonalStep = OneStep * 0.7071067811865475f;
 
         private IControllable _controllable;
+        private CollisionManager<BoundingBox, Rectangle> _collisionManager;
+        private ICollisionDetector<BoundingBox, Rectangle> _collisionDetector;
+        private ICollidable<BoundingBox> _collidedObject;
 
         [SetUp]
         public void SetUp()
         {
             _controllable = MockRepository.GenerateMock<IControllable>();
+            _collisionDetector = MockRepository.GenerateStub<ICollisionDetector<BoundingBox, Rectangle>>();
+            _collisionManager = new CollisionManager<BoundingBox, Rectangle>(_collisionDetector);
         }
 
         [TestCase(Direction.Down)]
@@ -110,6 +118,26 @@ namespace ZeldaGame.Tests
                 .ExecuteWithReport();
         }
 
+        [TestCase(Direction.Left, 16f, 0, 0.1f, 0)]
+        [TestCase(Direction.Up, 0, 16f, 0, 0.1f)]
+        [TestCase(Direction.Right, -1f, 0, 0.1f, 0)]
+        [TestCase(Direction.Down, 0, -1f, 0, 0.1f)]
+        public void RepositionTest(Direction direction, float expectedX, float expectedY, float withinX, float withinY)
+        {
+            new Story("Moving in a direction").Tag("moving")
+                .InOrderTo("Not move through solid objects")
+                .AsA("Developer")
+                .IWant("To reposition the character when they move")
+                .WithScenario("Collided with an object")
+                .Given(IIntendToMoveInADirection, direction)
+                    .And(TheObjectHasARelativeExpectedXAndYPositionOf, expectedX, expectedY)
+                    .And(TheObjectIsInTheMovingState)
+                    .And(TheObjectHasCollidedWithAnotherObject)
+                .When(AdvanceLogicHasBeenCalled)
+                .Then(TheObjectHasMovedToTheExpectedPositionWithin, withinX, withinY)
+                .ExecuteWithReport();
+        }
+
         [TestCase(Direction.Left, Direction.Up | Direction.Down, -OneStep, 0, 0.1f, 0)]
         [TestCase(Direction.Right, Direction.Up | Direction.Down, OneStep, 0, 0.1f, 0)]
         [TestCase(Direction.Up, Direction.Left | Direction.Right, 0, -OneStep, 0, 0.1f)]
@@ -130,6 +158,24 @@ namespace ZeldaGame.Tests
                 .ExecuteWithReport();
         }
 
+        private void TheObjectHasCollidedWithAnotherObject()
+        {
+            _collisionManager.Add(_directionable);
+            
+            _collidedObject = MockRepository.GenerateStub<ICollidable<BoundingBox>>();
+
+            var rect = new Rectangle(0, 0, 16, 16);
+
+            _collidedObject.Stub(e => e.Area).Return(new BoundingBox(rect));
+
+            _collisionManager.Add(_collidedObject);
+
+            _collisionDetector.Stub(e => e.DetectCollision(Arg<ICollidable<BoundingBox>>.Is.Anything, Arg<ICollidable<BoundingBox>>.Is.Anything)).Return(new Rectangle());
+            _collisionDetector.Stub(e => e.CalculateBoundary(Arg<ICollidable<BoundingBox>>.Is.Anything, Arg<IReadOnlyDictionary<ICollidable<BoundingBox>, Rectangle>>.Is.Anything)).Return(rect);
+
+            _collisionManager.CalculateCollisions();
+        }
+
         private void TheIntendedDirectionChanges(Direction direction)
         {
             _controllable.BackToRecord();
@@ -145,7 +191,7 @@ namespace ZeldaGame.Tests
 
         private void TheObjectIsInTheMovingState()
         {
-            _state = new MovingState(_directionable, _directionAnimationSet, _controllable, _endingStateCallback, OneStep);
+            _state = new MovingState(_collisionManager, _directionable, _directionAnimationSet, _controllable, _endingStateCallback, OneStep);
         }
 
         private void IIntendToMoveInADirection(Direction direction)

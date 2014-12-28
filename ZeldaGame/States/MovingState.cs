@@ -13,9 +13,11 @@ namespace ZeldaGame
         private readonly Func<IState> _endingStateCallback;
         private readonly float _speed;
         private readonly IDirectionAnimationSet _directionAnimationSet;
+        CollisionManager<BoundingBox, Rectangle> _collisionManager;
 
-        public MovingState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, IControllable controllable, Func<IState> endingStateCallback, float speed)
+        public MovingState(CollisionManager<BoundingBox, Rectangle> collisionManager, IDirectionable directionable, IDirectionAnimationSet directionAnimationSet, IControllable controllable, Func<IState> endingStateCallback, float speed)
         {
+            _collisionManager = collisionManager;
             _directionable = directionable;
             _directionAnimationSet = directionAnimationSet;
             _controllable = controllable;
@@ -47,6 +49,27 @@ namespace ZeldaGame
             var direction = _directionable.Direction;
             var position = _directionable.Position;
             var wasCalled = false;
+            var collisions = _collisionManager.GetCollisionsFor(_directionable);
+
+            if(collisions != null)
+            {
+                var boundary = _collisionManager.CollisionDetector.CalculateBoundary(_directionable, collisions);
+
+                if (boundary.HasValue)
+                {
+                    switch (direction)
+                    {
+                        case Direction.Down: position.Y = boundary.Value.Top - 1; break;
+                        case Direction.Left: position.X = boundary.Value.Right; break;
+                        case Direction.Right: position.X = boundary.Value.Left - 1; break;
+                        case Direction.Up: position.Y = boundary.Value.Bottom; break;
+                    }
+
+                    _directionable.Position = position;
+
+                    return;
+                }
+            }
 
             if (moveDown && direction != Direction.Up)
             {

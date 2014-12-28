@@ -148,7 +148,7 @@ namespace ZeldaGame.Tests
 
         private void LinkHasBeenCreated()
         {
-            _link = new Link(_resourceManager, _controllable);
+            _link = new Link(null,_resourceManager, _controllable);
         }
 
         private void TheGroupAnimationSetHasBeenSetUpWithResource(string resource)

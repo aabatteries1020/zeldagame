@@ -1,18 +1,37 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace ZeldaGame
 {
-    public class CollisionManager
+    public class CollisionManager<T, TResult> where TResult : struct
     {
-        private LinkedList<ICollidable> _objects = new LinkedList<ICollidable>();
-        private Dictionary<ICollidable, LinkedList<ICollidable>> _collisions = new Dictionary<ICollidable, LinkedList<ICollidable>>();
+        private LinkedList<ICollidable<T>> _objects = new LinkedList<ICollidable<T>>();
+        private Dictionary<ICollidable<T>, Dictionary<ICollidable<T>, TResult>> _collisions;
+        private ICollisionDetector<T, TResult> _collisionDetector;
+
+        public ICollisionDetector<T, TResult> CollisionDetector
+        {
+            get { return _collisionDetector; }
+        }
+
+        public CollisionManager(ICollisionDetector<T, TResult> collisionDetectionType)
+        {
+            _collisionDetector = collisionDetectionType;
+
+            Reset();
+        }
+
+        private void Reset()
+        {
+            _collisions = new Dictionary<ICollidable<T>, Dictionary<ICollidable<T>, TResult>>();
+        }
 
         public void CalculateCollisions()
         {
-            _collisions = new Dictionary<ICollidable, LinkedList<ICollidable>>();
+            Reset();
 
             var nodeA = _objects.First;
-            LinkedListNode<ICollidable> nodeB = null;
+            LinkedListNode<ICollidable<T>> nodeB = null;
 
             while(nodeA != null)
             {
@@ -20,10 +39,12 @@ namespace ZeldaGame
 
                 while (nodeB != null)
                 {
-                    if(Collision(nodeA.Value, nodeB.Value))
+                    var result = _collisionDetector.DetectCollision(nodeA.Value, nodeB.Value);
+                    
+                    if(result != null)
                     {
-                        CollisionDetected(nodeA.Value, nodeB.Value);
-                        CollisionDetected(nodeB.Value, nodeA.Value);
+                        CollisionDetected(nodeA.Value, nodeB.Value, result.Value);
+                        CollisionDetected(nodeB.Value, nodeA.Value, result.Value);
                     }
 
                     nodeB = nodeB.Next;
@@ -33,45 +54,31 @@ namespace ZeldaGame
             }
         }
 
-        private void CollisionDetected(ICollidable a, ICollidable b)
+        private void CollisionDetected(ICollidable<T> a, ICollidable<T> b, TResult result)
         {
-            LinkedList<ICollidable> collection;
+            Dictionary<ICollidable<T>, TResult> collection;
 
             if(!_collisions.TryGetValue(a, out collection))
             {
-                collection = new LinkedList<ICollidable>();
+                collection = new Dictionary<ICollidable<T>, TResult>();
 
                 _collisions.Add(a, collection);
             }
 
-            collection.AddLast(b);
+            collection.Add(b, result);
         }
 
-        private bool Collision(ICollidable a, ICollidable b)
+        public ReadOnlyDictionary<ICollidable<T>, TResult> GetCollisionsFor(ICollidable<T> value)
         {
-            if (a.BoundingBox.Right <= b.BoundingBox.Left)
-                return false;
-            if (b.BoundingBox.Right <= a.BoundingBox.Left)
-                return false;
-            if (a.BoundingBox.Bottom <= b.BoundingBox.Top)
-                return false;
-            if (b.BoundingBox.Bottom <= a.BoundingBox.Top)
-                return false;
-
-            return true;
-        }
-
-        public CollisionCollection GetCollisionsFor(ICollidable value)
-        {
-            LinkedList<ICollidable> collection;
+            Dictionary<ICollidable<T>, TResult> collection;
 
             if (!_collisions.TryGetValue(value, out collection))
                 return null;
 
-            return new CollisionCollection(collection);
+            return new ReadOnlyDictionary<ICollidable<T>, TResult>(collection);
         }
 
-        public void Add(ICollidable value)
+        public void Add(ICollidable<T> value)
         {
             _objects.AddLast(value);
         }

@@ -58,7 +58,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Managers\CollisionCollection.cs" />
+    <Compile Include="BoundingBox.cs" />
+    <Compile Include="BoundingBoxCollisionDetector.cs" />
+    <Compile Include="IAnimatable.cs" />
+    <Compile Include="ICollisionDetector.cs" />
+    <Compile Include="Index2.cs" />
     <Compile Include="Managers\CollisionManager.cs" />
     <Compile Include="Equipment.cs" />
     <Compile Include="EquipmentSlots.cs" />

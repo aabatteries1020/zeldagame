@@ -1,9 +1,18 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 
 namespace ZeldaGame
 {
-    public interface ICollidable
+    public enum CollisionType
     {
-        Rectangle BoundingBox { get; }
+        Static,
+        Dynamic
+    }
+
+    public interface ICollidable<T>
+    {
+        T Area { get; }
+
+        CollisionType Type { get; }
     }
 }

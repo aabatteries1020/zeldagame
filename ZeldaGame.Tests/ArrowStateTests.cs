@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.Xna.Framework;
+using NUnit.Framework;
+using Rhino.Mocks;
 using StoryQ;
 
 namespace ZeldaGame.Tests
@@ -44,7 +46,9 @@ namespace ZeldaGame.Tests
 
         private void TheObjectIsInTheTheArrowState()
         {
-            _state = new ArrowState(_directionable, _directionAnimationSet);
+            var collisionDetector = MockRepository.GenerateMock<ICollisionDetector<BoundingBox, Rectangle>>();
+            var collisionManager = new CollisionManager<BoundingBox, Rectangle>(collisionDetector);
+            _state = new ArrowState(collisionManager, _directionable, _directionAnimationSet);
         }
     }
 }

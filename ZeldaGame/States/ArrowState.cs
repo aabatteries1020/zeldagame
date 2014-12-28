@@ -1,4 +1,5 @@
-﻿namespace ZeldaGame
+﻿using Microsoft.Xna.Framework;
+namespace ZeldaGame
 {
     public class ArrowState : IState
     {
@@ -24,9 +25,9 @@
             }
         }
 
-        public ArrowState(IDirectionable directionable, IDirectionAnimationSet directionAnimationSet)
+        public ArrowState(CollisionManager<BoundingBox, Rectangle> collisionManager, IDirectionable directionable, IDirectionAnimationSet directionAnimationSet)
         {
-            _state = new MovingState(directionable, directionAnimationSet, new Controller(directionable.Direction), null, 1.0f);
+            _state = new MovingState(collisionManager, directionable, directionAnimationSet, new Controller(directionable.Direction), null, 1.0f);
         }
 
         public void AdvanceLogic()

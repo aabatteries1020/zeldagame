@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using ZeldaGame.States;
 
 namespace ZeldaGame
@@ -7,6 +8,7 @@ namespace ZeldaGame
     {
         private IResourceManager _resourceManager;
         private IControllable _controllable;
+        private CollisionManager<BoundingBox, Rectangle> _collisionManager;
 
         public Vector2 Position
         {
@@ -38,8 +40,9 @@ namespace ZeldaGame
             private set;
         }
 
-        public Link(IResourceManager resourceManager, IControllable controllable)
+        public Link(CollisionManager<BoundingBox, Rectangle> collisionManager, IResourceManager resourceManager, IControllable controllable)
         {
+            _collisionManager = collisionManager;
             _resourceManager = resourceManager;
             _controllable = controllable;
 
@@ -63,7 +66,7 @@ namespace ZeldaGame
 
             if(stateType == typeof(StandingState) && _controllable.Direction != ZeldaGame.Direction.None)
             {
-                State = new MovingState(this, GroupSet.LoadDirectionSet("Walking"), _controllable, CreateStandingState, 2f);
+                State = new MovingState(_collisionManager, this, GroupSet.LoadDirectionSet("Walking"), _controllable, CreateStandingState, 2f);
             }
             else if(State.CanUseItems && _controllable.Slot != EquipmentSlots.Unassigned)
             {
@@ -74,6 +77,21 @@ namespace ZeldaGame
                     this.State = item.CreateState(this, GroupSet, CreateStandingState);
                 }
             }
+        }
+
+        private Index2 gridSize = new Index2(3, 3);
+
+        public BoundingBox Area
+        {
+            get
+            {
+                return new BoundingBox(new Rectangle((int)Position.X, (int)Position.Y, 16, 8), gridSize);
+            }
+        }
+
+        public CollisionType Type
+        {
+            get { return CollisionType.Dynamic; }
         }
     }
 }
